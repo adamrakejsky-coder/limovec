@@ -1,15 +1,15 @@
-# Core Discord Bot
+# Discord Library
 discord.py>=2.3.2
 
 # Database
 asyncpg>=0.28.0
 psycopg2-binary>=2.9.7
 
-# Web Server & Environment
+# Web Server/enviroment
 flask>=2.3.3
 python-dotenv>=1.0.0
 
-# Data & Visualization  
+# Data A vizualizace
 matplotlib>=3.7.2
 numpy>=1.24.3
 
@@ -19,5 +19,5 @@ psutil>=5.9.5
 # HTTP Client
 aiohttp>=3.8.5
 
-# Additional utilities (may be used by discord.py or other packages)
+# Vedlejší
 typing-extensions>=4.7.1
