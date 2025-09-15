@@ -20,12 +20,12 @@ import weakref
 # Přidání current directory do Python path pro importy (Render compatibility)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Kontoluj zda existuje bot složka a soubory
+# Zkontroluje zda existuje bot složka
 bot_folder_exists = os.path.exists(os.path.join(os.path.dirname(__file__), 'bot'))
 manager_exists = os.path.exists(os.path.join(os.path.dirname(__file__), 'bot', 'database', 'manager.py'))
 
 if bot_folder_exists and manager_exists:
-    # Kompletní importy z bot folderu pro Render
+    # Kompletní importy z bot folderu
     from bot.database.manager import DatabaseManager
     from bot.tickets.manager import TicketManager
     from bot.tickets.database import TicketDatabase
@@ -139,13 +139,13 @@ else:
 # Načtení .env souboru
 load_dotenv()
 
-# Konfiguraci databáze
+# Konfigurace databáze
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
 if not DATABASE_URL:
     print("❌ KRITICKÁ CHYBA: DATABASE_URL není nastavena! Bot bude pokračovat bez databáze.")
     DATABASE_URL = None
 
-# Optimalizované intents - pouze co potřebujeme
+# Optimalizované intents - pouze co potřebuje
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -155,11 +155,11 @@ intents.guilds = True
 bot = commands.Bot(
     command_prefix="!", 
     intents=intents,
-    max_messages=1000,  # Omez cache zpráv
+    max_messages=1000,  # Omezí cache zprávy
     case_insensitive=True
 )
 
-# Globální databázové připojení - nyní použijeme DatabaseManager
+# Globální databázové připojení 
 db_manager = DatabaseManager()
 
 # Cache pro invite tracking
@@ -206,7 +206,7 @@ async def safe_db_operation(operation_name: str, operation_func, default_return=
     return await db_manager.safe_operation(operation_name, operation_func, default_return)
 
 async def get_guild_settings(guild_id: int) -> Dict[str, Any]:
-    # Zkus cache první
+    # Zkusí cache první
     cache_key = f"guild_settings_{guild_id}"
     cached = guild_settings_cache.get(cache_key)
     if cached:
@@ -226,15 +226,15 @@ async def get_guild_settings(guild_id: int) -> Dict[str, Any]:
                     "welcome_msg": None,
                     "goodbye_msg": None,
                     "invite_tracking": True,
-                    "log_reactions": False,        # Defaultně vypnuté kvůli spamu
+                    "log_reactions": False,        # Defaultně vypnuté kvůli rate limitu
                     "log_voice": True,             # Voice události
                     "log_threads": True,           # Thread události
                     "log_roles": True,             # Role události  
                     "log_channels": True,          # Channel události
                     "log_emojis": True,            # Emoji události
-                    "log_user_updates": False      # User profile změny (může být spam)
+                    "log_user_updates": False      # User profile změny
                 }
-                # Vytvoř defaultní nastavení v databázi
+                # Vytvoří defaultní nastavení v databázi
                 await conn.execute('''
                     INSERT INTO guild_settings (guild_id, invite_tracking, log_reactions, log_voice, 
                                                log_threads, log_roles, log_channels, log_emojis, log_user_updates) 
@@ -271,7 +271,7 @@ async def get_guild_settings(guild_id: int) -> Dict[str, Any]:
 async def update_guild_settings(guild_id: int, key: str, value):
     async def _update_settings():
         async with db_manager.pool.acquire() as conn:
-            # Dynamicky vytvoř UPDATE na základě klíče
+            # Dynamicky vytvoří UPDATE na základě klíče
             await conn.execute(f'''
                 INSERT INTO guild_settings (guild_id, {key}, updated_at) 
                 VALUES ($1, $2, CURRENT_TIMESTAMP)
@@ -361,17 +361,17 @@ async def preload_all_settings():
     try:
         loaded_count = 0
         for guild in bot.guilds:
-            # Načti základní nastavení
+            # Načte základní nastavení
             await get_guild_settings(guild.id)
             
-            # Načti ticket nastavení (pokud existuje ticket_manager)
+            # Načte ticket nastavení (pokud existuje ticket_manager)
             if hasattr(bot, 'ticket_manager') and bot.ticket_manager:
                 try:
                     await bot.ticket_manager.ticket_db.get_settings(guild.id)
                 except Exception as e:
                     print(f"⚠️ Chyba při načítání ticket nastavení pro {guild.name}: {e}")
             
-            # Načti election nastavení
+            # Načte election nastavení
             try:
                 await get_current_election_type(guild.id)
                 await get_voting_ui_type(guild.id)
@@ -417,7 +417,7 @@ async def cleanup_caches():
 async def on_ready():
     print(f"✅ Přihlášen jako {bot.user}")
     
-    # Zaznamenej start time pro uptime tracking
+    # Zaznamenená start time pro uptime tracking
     bot.start_time = datetime.now(timezone.utc)
     
     # Inicializace databáze s novým DatabaseManager
@@ -549,7 +549,7 @@ async def on_ready():
         cleanup_caches.start()
         print("🧹 Cache cleanup task spuštěn")
     
-    # Test databázového připojení pouze pokud máme databázi
+    # Test databázového připojení pouze pokud má databázi
     if db_manager.pool:
         try:
             test_guild_id = 123456789  # Test ID
@@ -756,13 +756,13 @@ async def log_reset(ctx):
     """Resetuje nastavení logování na výchozí hodnoty"""
     # Výchozí nastavení
     default_settings = {
-        "log_reactions": False,      # Defaultně vypnuté kvůli spamu
+        "log_reactions": False,      # Defaultně vypnuté kvůli rate limitu
         "log_voice": True,           # Voice události
         "log_threads": True,         # Thread události
         "log_roles": True,           # Role události  
         "log_channels": True,        # Channel události
         "log_emojis": True,          # Emoji události
-        "log_user_updates": False    # User profile změny (může být spam)
+        "log_user_updates": False    # User profile změny 
     }
     
     for setting_key, default_value in default_settings.items():
@@ -847,7 +847,7 @@ async def upravit_kandidata(ctx, candidate_id: int, *, new_name: str):
     
     async def _edit_candidate():
         async with db_manager.pool.acquire() as conn:
-            # Zkontroluj zda kandidát existuje
+            # Zkontroluje zda kandidát existuje
             candidate = await conn.fetchrow('''
                 SELECT name FROM rp_candidates 
                 WHERE id = $1 AND guild_id = $2
@@ -858,7 +858,7 @@ async def upravit_kandidata(ctx, candidate_id: int, *, new_name: str):
             
             old_name = candidate['name']
             
-            # Uprav název
+            # Upraví název
             await conn.execute('''
                 UPDATE rp_candidates 
                 SET name = $1 
@@ -1035,7 +1035,7 @@ async def volit(ctx):
 async def handle_vote(interaction: discord.Interaction, candidate_id: int):
     """Zpracuje hlasování uživatele"""
     try:
-        # Zkontroluj 14-denní minimum na serveru
+        # Zkontroluje 14-denní minimum na serveru
         member = interaction.guild.get_member(interaction.user.id)
         if member and member.joined_at:
             days_on_server = (datetime.now(timezone.utc) - member.joined_at).days
@@ -1053,7 +1053,7 @@ async def handle_vote(interaction: discord.Interaction, candidate_id: int):
         
         async def _vote():
             async with db_manager.pool.acquire() as conn:
-                # Zkontroluj zda už hlasoval
+                # Zkontroluje zda už hlasoval
                 existing = await conn.fetchrow('''
                     SELECT id FROM rp_votes 
                     WHERE guild_id = $1 AND user_id = $2
@@ -1062,13 +1062,13 @@ async def handle_vote(interaction: discord.Interaction, candidate_id: int):
                 if existing:
                     return "already_voted"
                 
-                # Přidej hlas
+                # Přidá hlas
                 await conn.execute('''
                     INSERT INTO rp_votes (guild_id, user_id, candidate_id)
                     VALUES ($1, $2, $3)
                 ''', interaction.guild.id, interaction.user.id, candidate_id)
                 
-                # Získej jméno kandidáta
+                # Získí jméno kandidáta
                 candidate = await conn.fetchrow('''
                     SELECT name FROM rp_candidates WHERE id = $1
                 ''', candidate_id)
@@ -1130,7 +1130,7 @@ async def vysledky(ctx):
         
         embed.timestamp = datetime.now(timezone.utc)
         
-        # Vytvoř koláčový graf
+        # Vytvoří koláčový graf
         if total_votes > 0:
             try:
                 names = [result['name'] for result in results]
@@ -1205,7 +1205,7 @@ async def show_detailed_voting_breakdown(interaction: discord.Interaction, elect
         
         async def _get_detailed_breakdown():
             async with db_manager.pool.acquire() as conn:
-                # Jednodušší dotaz - získej kandidáty seřazené podle hlasů
+                # Jednodušší dotaz - získá kandidáty seřazené podle hlasů
                 candidates = await conn.fetch('''
                     SELECT
                         c.id as candidate_id,
@@ -1218,7 +1218,7 @@ async def show_detailed_voting_breakdown(interaction: discord.Interaction, elect
                     ORDER BY COUNT(v.id) DESC, c.name
                 ''', interaction.guild.id, election_type)
 
-                # Pro každého kandidáta získej jeho konkrétní hlasy
+                # Pro každého kandidáta získí jeho konkrétní hlasy
                 result = []
                 for candidate in candidates:
                     votes = await conn.fetch('''
@@ -1243,7 +1243,7 @@ async def show_detailed_voting_breakdown(interaction: discord.Interaction, elect
             await interaction.followup.send("❌ Žádné kandidáty nalezeny.", ephemeral=True)
             return
         
-        # Vytvoř embed podobný obrázku
+        # Vytvoří embed podobný obrázku
         embed = discord.Embed(
             title="📋 Detailní přehled hlasů",
             color=discord.Color.blue()
@@ -1252,7 +1252,7 @@ async def show_detailed_voting_breakdown(interaction: discord.Interaction, elect
         total_votes = sum(row['vote_count'] for row in breakdown)
         embed.add_field(name="Celkem hlasů", value=str(total_votes), inline=False)
         
-        # Pro každého kandidáta vytvoř sekci
+        # Pro každého kandidáta vytvoří sekci
         for candidate in breakdown:
             name = candidate['candidate_name']
             vote_count = candidate['vote_count']
