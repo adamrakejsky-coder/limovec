@@ -1,0 +1,2 @@
+TOKEN=MTQxNjg1NjYxOTA3NzIxMDI3NA.Gd_avB.m-EzpLHSfGO3obEfGoblz2q7ibhyFYuQtndEv0
+DATABASE_URL=postgresql://aaa_h40h_user:Z85jqpL3phD4AMr94l4ALsufbMLUQSD2@dpg-d2lifg7diees73c2m95g-a/aaa_h40h
